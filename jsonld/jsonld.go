@@ -186,10 +186,15 @@ func typedStringToJSON(v quad.TypedString) map[string]string {
 	}
 }
 
+const nil_iri = quad.IRI("http://www.w3.org/1999/02/22-rdf-syntax-ns#nil")
+
 // FromValue converts quad value to a JSON-LD compatible object.
 func FromValue(v quad.Value) interface{} {
 	switch v := v.(type) {
 	case quad.IRI:
+		if v == nil_iri {
+			return nil
+		}
 		return map[string]string{
 			"@id": string(v),
 		}
