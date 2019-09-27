@@ -109,6 +109,9 @@ func (w *Writer) SetLdContext(ctx interface{}) {
 }
 
 func (w *Writer) WriteQuad(q quad.Quad) error {
+	if !q.IsValid() {
+		return quad.ErrInvalid
+	}
 	var graph string
 	if q.Label == nil {
 		graph = "@default"

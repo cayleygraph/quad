@@ -313,6 +313,9 @@ func (enc *Writer) writeValue(v quad.Value, sep string) {
 }
 
 func (enc *Writer) WriteQuad(q quad.Quad) error {
+	if !q.IsValid() {
+		return quad.ErrInvalid
+	}
 	enc.writeValue(q.Subject, " ")
 	enc.writeValue(q.Predicate, " ")
 	if q.Label == nil {

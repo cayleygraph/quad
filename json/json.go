@@ -3,6 +3,7 @@ package json
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 
@@ -99,7 +100,9 @@ type Writer struct {
 
 func (w *Writer) WriteQuad(q quad.Quad) error {
 	if w.closed {
-		return fmt.Errorf("closed")
+		return errors.New("closed")
+	} else if !q.IsValid() {
+		return quad.ErrInvalid
 	}
 	if !w.written {
 		if _, err := w.w.Write([]byte("[\n\t")); err != nil {
@@ -150,6 +153,9 @@ type StreamWriter struct {
 }
 
 func (w *StreamWriter) WriteQuad(q quad.Quad) error {
+	if !q.IsValid() {
+		return quad.ErrInvalid
+	}
 	return w.enc.Encode(q)
 }
 

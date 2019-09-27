@@ -63,6 +63,8 @@ func escape(s string) string {
 func (w *Writer) WriteQuad(q quad.Quad) error {
 	if w.err != nil {
 		return w.err
+	} else if !q.IsValid() {
+		return quad.ErrInvalid
 	}
 	if !w.written {
 		if _, err := w.w.Write([]byte(header)); err != nil {

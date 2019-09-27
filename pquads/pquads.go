@@ -74,6 +74,8 @@ func NewWriter(w io.Writer, opts *Options) *Writer {
 func (w *Writer) WriteQuad(q quad.Quad) error {
 	if w.err != nil {
 		return w.err
+	} else if !q.IsValid() {
+		return quad.ErrInvalid
 	}
 	if !w.opts.Full {
 		if q.Subject == w.s {
