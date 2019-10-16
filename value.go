@@ -29,6 +29,17 @@ type Value interface {
 	Native() interface{}
 }
 
+var (
+	_ Identifier = IRI("")
+	_ Identifier = BNode("")
+)
+
+// Identifier is a union of IRI and BNode.
+type Identifier interface {
+	Value
+	isIdentifier()
+}
+
 type TypedStringer interface {
 	TypedString() TypedString
 }
@@ -246,6 +257,9 @@ const (
 // IRI is an RDF Internationalized Resource Identifier (ex: <name>).
 type IRI string
 
+// isIdentifier implements Identifier.
+func (s IRI) isIdentifier() {}
+
 // String prints IRI in "<iri>" form.
 func (s IRI) String() string { return `<` + string(s) + `>` }
 
@@ -294,6 +308,9 @@ func (s IRI) FullWith(n *voc.Namespaces) IRI {
 
 // BNode is an RDF Blank Node (ex: _:name).
 type BNode string
+
+// isIdentifier implements Identifier.
+func (s BNode) isIdentifier() {}
 
 func (s BNode) String() string { return `_:` + string(s) }
 func (s BNode) GoString() string {
