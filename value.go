@@ -326,7 +326,8 @@ func init() {
 	// float types
 	RegisterStringConversion(defaultFloatType, stringToFloat)
 	RegisterStringConversion(xsd.Float, stringToFloat)
-	RegisterStringConversion(schema.Number, stringToInt)
+	RegisterStringConversion(schema.Float, stringToFloat)
+	RegisterStringConversion(schema.Number, stringToFloat)
 	// time types
 	RegisterStringConversion(defaultTimeType, stringToTime)
 	RegisterStringConversion(xsd.DateTime, stringToTime)
