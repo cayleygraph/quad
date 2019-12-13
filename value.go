@@ -320,6 +320,7 @@ func init() {
 	RegisterStringConversion(defaultIntType, stringToInt)
 	RegisterStringConversion(xsd.Int, stringToInt)
 	RegisterStringConversion(xsd.Long, stringToInt)
+	RegisterStringConversion(schema.Integer, stringToInt)
 	// bool types
 	RegisterStringConversion(defaultBoolType, stringToBool)
 	RegisterStringConversion(schema.Boolean, stringToBool)
