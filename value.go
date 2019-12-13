@@ -13,6 +13,7 @@ import (
 
 	"github.com/cayleygraph/quad/voc"
 	"github.com/cayleygraph/quad/voc/schema"
+	"github.com/cayleygraph/quad/voc/xsd"
 )
 
 func IsValidValue(v Value) bool {
@@ -306,32 +307,32 @@ func (s BNode) Native() interface{} { return s }
 // specific IRI type to their native equivalents.
 type StringConversion func(string) (Value, error)
 
+// Following the JSON-LD specification: https://w3c.github.io/json-ld-syntax/#conversion-of-native-data-types
 const (
-	nsXSD = `http://www.w3.org/2001/XMLSchema#`
-)
-
-// TODO(dennwc): make these configurable
-const (
-	defaultIntType   IRI = schema.Integer
-	defaultFloatType IRI = schema.Float
-	defaultBoolType  IRI = schema.Boolean
-	defaultTimeType  IRI = schema.DateTime
+	defaultIntType   IRI = xsd.Integer
+	defaultFloatType IRI = xsd.Double
+	defaultBoolType  IRI = xsd.Boolean
+	defaultTimeType  IRI = xsd.DateTime
 )
 
 func init() {
 	// int types
 	RegisterStringConversion(defaultIntType, stringToInt)
-	RegisterStringConversion(nsXSD+`integer`, stringToInt)
-	RegisterStringConversion(nsXSD+`long`, stringToInt)
+	RegisterStringConversion(xsd.Int, stringToInt)
+	RegisterStringConversion(xsd.Long, stringToInt)
+	RegisterStringConversion(schema.Integer, stringToInt)
 	// bool types
 	RegisterStringConversion(defaultBoolType, stringToBool)
-	RegisterStringConversion(nsXSD+`boolean`, stringToBool)
+	RegisterStringConversion(schema.Boolean, stringToBool)
 	// float types
 	RegisterStringConversion(defaultFloatType, stringToFloat)
-	RegisterStringConversion(nsXSD+`double`, stringToFloat)
+	RegisterStringConversion(xsd.Float, stringToFloat)
+	RegisterStringConversion(schema.Float, stringToFloat)
+	RegisterStringConversion(schema.Number, stringToFloat)
 	// time types
 	RegisterStringConversion(defaultTimeType, stringToTime)
-	RegisterStringConversion(nsXSD+`dateTime`, stringToTime)
+	RegisterStringConversion(xsd.DateTime, stringToTime)
+	RegisterStringConversion(schema.DateTime, stringToTime)
 }
 
 var knownConversions = make(map[IRI]StringConversion)
