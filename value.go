@@ -16,8 +16,18 @@ import (
 	"github.com/cayleygraph/quad/voc/xsd"
 )
 
+// IsValidValue checks if the value is valid. It returns false if the value is nil, an empty IRI or an empty BNode.
 func IsValidValue(v Value) bool {
-	return v != nil
+	if v == nil {
+		return false
+	}
+	switch v := v.(type) {
+	case IRI:
+		return v != ""
+	case BNode:
+		return v != ""
+	}
+	return true
 }
 
 // Value is a type used by all quad directions.
