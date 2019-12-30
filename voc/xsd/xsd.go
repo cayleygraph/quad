@@ -9,7 +9,7 @@ func init() {
 
 const (
 	NS     = "http://www.w3.org/2001/XMLSchema#"
-	Prefix = "xsd"
+	Prefix = "xsd:"
 )
 
 // Base types
