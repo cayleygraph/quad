@@ -13,9 +13,13 @@ const (
 )
 
 const (
-	UnionOf        = NS + "unionOf"
-	Restriction    = NS + "Restriction"
-	OnProperty     = NS + "onProperty"
-	Cardinality    = NS + "cardinality"
-	MaxCardinality = NS + "maxCardinality"
+	UnionOf          = Prefix + "unionOf"
+	Restriction      = Prefix + "Restriction"
+	OnProperty       = Prefix + "onProperty"
+	Cardinality      = Prefix + "cardinality"
+	MaxCardinality   = Prefix + "maxCardinality"
+	Thing            = Prefix + "Thing"
+	Class            = Prefix + "Class"
+	DatatypeProperty = Prefix + "DatatypeProperty"
+	ObjectProperty   = Prefix + "ObjectProperty"
 )
