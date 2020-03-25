@@ -182,7 +182,19 @@ func toTerm(v quad.Value) gojsonld.Term {
 	}
 }
 
-func typedStringToJSON(v quad.TypedString) map[string]string {
+func isKnownTimeType(dataType quad.IRI) bool {
+	for _, iri := range quad.KnownTimeTypes {
+		if iri == dataType {
+			return true
+		}
+	}
+	return false
+}
+
+func typedStringToJSON(v quad.TypedString) interface{} {
+	if quad.HasStringConversion(v.Type) && !isKnownTimeType(v.Type) {
+		return v.Native()
+	}
 	return map[string]string{
 		"@value": string(v.Value),
 		"@type":  string(v.Type),

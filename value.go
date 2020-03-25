@@ -336,30 +336,53 @@ type StringConversion func(string) (Value, error)
 
 // Following the JSON-LD specification: https://w3c.github.io/json-ld-syntax/#conversion-of-native-data-types
 const (
-	defaultIntType   IRI = xsd.Integer
-	defaultFloatType IRI = xsd.Double
-	defaultBoolType  IRI = xsd.Boolean
-	defaultTimeType  IRI = xsd.DateTime
+	defaultStringType IRI = xsd.String
+	defaultIntType    IRI = xsd.Integer
+	defaultFloatType  IRI = xsd.Double
+	defaultBoolType   IRI = xsd.Boolean
+	defaultTimeType   IRI = xsd.DateTime
 )
 
+// KnownIntTypes consists of known IRIs of integer types
+var KnownIntTypes = []IRI{
+	defaultIntType,
+	xsd.Int,
+	xsd.Long,
+	schema.Integer,
+}
+
+// KnownBoolTypes consists of known IRIs of boolean types
+var KnownBoolTypes = []IRI{
+	defaultBoolType,
+	schema.Boolean,
+}
+
+// KnownFloatTypes consists of known IRIs of floating-point numbers types
+var KnownFloatTypes = []IRI{
+	defaultFloatType,
+	xsd.Float,
+	schema.Float,
+	schema.Number,
+}
+
+// KnownTimeTypes consists of known IRIs of datetime types
+var KnownTimeTypes = []IRI{
+	defaultTimeType,
+	xsd.DateTime,
+	schema.DateTime,
+}
+
 func init() {
+	// string types
+	RegisterStringConversion(defaultStringType, stringToString)
 	// int types
-	RegisterStringConversion(defaultIntType, stringToInt)
-	RegisterStringConversion(xsd.Int, stringToInt)
-	RegisterStringConversion(xsd.Long, stringToInt)
-	RegisterStringConversion(schema.Integer, stringToInt)
+	RegisterStringConversions(KnownIntTypes, stringToInt)
 	// bool types
-	RegisterStringConversion(defaultBoolType, stringToBool)
-	RegisterStringConversion(schema.Boolean, stringToBool)
+	RegisterStringConversions(KnownBoolTypes, stringToBool)
 	// float types
-	RegisterStringConversion(defaultFloatType, stringToFloat)
-	RegisterStringConversion(xsd.Float, stringToFloat)
-	RegisterStringConversion(schema.Float, stringToFloat)
-	RegisterStringConversion(schema.Number, stringToFloat)
+	RegisterStringConversions(KnownFloatTypes, stringToFloat)
 	// time types
-	RegisterStringConversion(defaultTimeType, stringToTime)
-	RegisterStringConversion(xsd.DateTime, stringToTime)
-	RegisterStringConversion(schema.DateTime, stringToTime)
+	RegisterStringConversions(KnownTimeTypes, stringToTime)
 }
 
 var knownConversions = make(map[IRI]StringConversion)
@@ -380,6 +403,23 @@ func RegisterStringConversion(dataType IRI, fnc StringConversion) {
 			knownConversions[full] = fnc
 		}
 	}
+}
+
+// RegisterStringConversions calls RegisterStringConversion with every IRI in dataTypes and fnc
+func RegisterStringConversions(dataTypes []IRI, fnc StringConversion) {
+	for _, iri := range dataTypes {
+		RegisterStringConversion(iri, fnc)
+	}
+}
+
+// HasStringConversion returns whether IRI has a string conversion
+func HasStringConversion(dataType IRI) bool {
+	_, ok := knownConversions[dataType]
+	return ok
+}
+
+func stringToString(s string) (Value, error) {
+	return String(s), nil
 }
 
 func stringToInt(s string) (Value, error) {
