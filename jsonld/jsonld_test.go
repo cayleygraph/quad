@@ -320,8 +320,13 @@ var toValueTestCases = []struct {
 		value:  quad.Int(1),
 	},
 	{
-		name:   "Known typed floating-point number",
+		name:   "Known typed floating-point number (xsd:double)",
 		jsonLd: gojsonld.NewLiteralWithDatatype("1.1", gojsonld.NewResource(xsd.Double)),
+		value:  quad.Float(1.1),
+	},
+	{
+		name:   "Known typed floating-point number (xsd:float)",
+		jsonLd: gojsonld.NewLiteralWithDatatype("1.1", gojsonld.NewResource(xsd.Float)),
 		value:  quad.Float(1.1),
 	},
 	{
