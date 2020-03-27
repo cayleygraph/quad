@@ -11,7 +11,7 @@ import (
 
 	"github.com/cayleygraph/quad"
 	"github.com/cayleygraph/quad/voc/xsd"
-	"github.com/linkeddata/gojsonld"
+	"github.com/piprate/json-gold/ld"
 	"github.com/stretchr/testify/require"
 )
 
@@ -257,9 +257,14 @@ var fromValueTestCases = []struct {
 	jsonLd interface{}
 }{
 	{
-		name:   "Simple string",
+		name:   "Simple text",
 		value:  quad.String("Alice"),
 		jsonLd: "Alice",
+	},
+	{
+		name:   "Localized text",
+		value:  quad.LangString{Value: "Alice", Lang: "en"},
+		jsonLd: map[string]string{"@value": "Alice", "@language": "en"},
 	},
 	{
 		name:   "Known typed string",
@@ -301,42 +306,47 @@ func TestFromValue(t *testing.T) {
 
 var toValueTestCases = []struct {
 	name   string
-	jsonLd gojsonld.Term
+	jsonLd ld.Node
 	value  quad.Value
 }{
 	{
-		name:   "Simple string",
-		jsonLd: gojsonld.NewLiteral("Alice"),
+		name:   "Simple text",
+		jsonLd: ld.NewLiteral("Alice", "", ""),
 		value:  quad.String("Alice"),
 	},
 	{
+		name:   "Localized text",
+		jsonLd: ld.NewLiteral("Alice", "", "en"),
+		value:  quad.LangString{Value: "Alice", Lang: "en"},
+	},
+	{
 		name:   "Known typed string",
-		jsonLd: gojsonld.NewLiteralWithDatatype("Alice", gojsonld.NewResource(xsd.String)),
+		jsonLd: ld.NewLiteral("Alice", xsd.String, ""),
 		value:  quad.String("Alice"),
 	},
 	{
 		name:   "Known typed integer",
-		jsonLd: gojsonld.NewLiteralWithDatatype("1", gojsonld.NewResource(xsd.Integer)),
+		jsonLd: ld.NewLiteral("1", xsd.Integer, ""),
 		value:  quad.Int(1),
 	},
 	{
 		name:   "Known typed floating-point number (xsd:double)",
-		jsonLd: gojsonld.NewLiteralWithDatatype("1.1", gojsonld.NewResource(xsd.Double)),
+		jsonLd: ld.NewLiteral("1.1", xsd.Double, ""),
 		value:  quad.Float(1.1),
 	},
 	{
 		name:   "Known typed floating-point number (xsd:float)",
-		jsonLd: gojsonld.NewLiteralWithDatatype("1.1", gojsonld.NewResource(xsd.Float)),
+		jsonLd: ld.NewLiteral("1.1", xsd.Float, ""),
 		value:  quad.Float(1.1),
 	},
 	{
 		name:   "Known typed boolean",
-		jsonLd: gojsonld.NewLiteralWithDatatype("true", gojsonld.NewResource(xsd.Boolean)),
+		jsonLd: ld.NewLiteral("true", xsd.Boolean, ""),
 		value:  quad.Bool(true),
 	},
 	{
 		name:   "Datetime",
-		jsonLd: gojsonld.NewLiteralWithDatatype("0001-01-01T00:00:00Z", gojsonld.NewResource(xsd.DateTime)),
+		jsonLd: ld.NewLiteral("0001-01-01T00:00:00Z", xsd.DateTime, ""),
 		value:  quad.Time(time.Time{}),
 	},
 }
