@@ -48,6 +48,9 @@ func NewReaderFromMap(o interface{}) *Reader {
 	}
 }
 
+var _ quad.Reader = &Reader{}
+
+// Reader implements the quad.Reader interface
 type Reader struct {
 	err    error
 	name   string
@@ -55,6 +58,7 @@ type Reader struct {
 	graphs map[string][]*gojsonld.Triple
 }
 
+// ReadQuad implements the quad.Reader interface
 func (r *Reader) ReadQuad() (quad.Quad, error) {
 	if r.err != nil {
 		return quad.Quad{}, r.err
@@ -64,7 +68,7 @@ next:
 		return quad.Quad{}, io.EOF
 	}
 	if r.name == "" {
-		for gname, _ := range r.graphs {
+		for gname := range r.graphs {
 			r.name = gname
 			break
 		}
@@ -89,25 +93,33 @@ next:
 	}, nil
 }
 
+// Close implements quad.Reader
 func (r *Reader) Close() error {
 	r.graphs = nil
 	return r.err
 }
 
-func NewWriter(w io.Writer) *Writer {
-	return &Writer{w: w, ds: gojsonld.NewDataset()}
-}
+var _ quad.Writer = &Writer{}
 
+// Writer implements quad.Writer
 type Writer struct {
 	w   io.Writer
 	ds  *gojsonld.Dataset
 	ctx interface{}
 }
 
+// NewWriter constructs a new Writer
+func NewWriter(w io.Writer) *Writer {
+	return &Writer{w: w, ds: gojsonld.NewDataset()}
+}
+
+// SetLdContext defines a context for the emitted JSON-LD data
+// See: https://json-ld.org/spec/latest/json-ld/#the-context
 func (w *Writer) SetLdContext(ctx interface{}) {
 	w.ctx = ctx
 }
 
+// WriteQuad implements quad.Writer
 func (w *Writer) WriteQuad(q quad.Quad) error {
 	if !q.IsValid() {
 		return quad.ErrInvalid
@@ -130,6 +142,7 @@ func (w *Writer) WriteQuad(q quad.Quad) error {
 	return nil
 }
 
+// WriteQuads implements quad.Writer
 func (w *Writer) WriteQuads(buf []quad.Quad) (int, error) {
 	for i, q := range buf {
 		if err := w.WriteQuad(q); err != nil {
@@ -139,6 +152,7 @@ func (w *Writer) WriteQuads(buf []quad.Quad) (int, error) {
 	return len(buf), nil
 }
 
+// Close implements quad.Writer
 func (w *Writer) Close() error {
 	opts := gojsonld.NewOptions("")
 	var data interface{}
