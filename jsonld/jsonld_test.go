@@ -264,7 +264,7 @@ var fromValueTestCases = []struct {
 	{
 		name:   "Localized text",
 		value:  quad.LangString{Value: "Alice", Lang: "en"},
-		jsonLd: map[string]string{"@value": "Alice", "@language": "en"},
+		jsonLd: map[string]interface{}{"@value": "Alice", "@language": "en"},
 	},
 	{
 		name:   "Known typed string",
@@ -289,7 +289,7 @@ var fromValueTestCases = []struct {
 	{
 		name:  "Datetime",
 		value: quad.Time(time.Time{}),
-		jsonLd: map[string]string{
+		jsonLd: map[string]interface{}{
 			"@value": "0001-01-01T00:00:00Z",
 			"@type":  xsd.DateTime,
 		},

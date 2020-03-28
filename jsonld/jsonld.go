@@ -198,17 +198,17 @@ func toTerm(v quad.Value) ld.Node {
 func FromValue(v quad.Value) interface{} {
 	switch v := v.(type) {
 	case quad.IRI:
-		return map[string]string{
+		return map[string]interface{}{
 			"@id": string(v),
 		}
 	case quad.BNode:
-		return map[string]string{
+		return map[string]interface{}{
 			"@id": v.String(),
 		}
 	case quad.String:
 		return string(v)
 	case quad.LangString:
-		return map[string]string{
+		return map[string]interface{}{
 			"@value":    string(v.Value),
 			"@language": string(v.Lang),
 		}
@@ -234,7 +234,7 @@ func typedStringToJSON(v quad.TypedString) interface{} {
 	if AutoConvertTypedString && quad.HasStringConversion(v.Type) && !isKnownTimeType(v.Type) {
 		return v.Native()
 	}
-	return map[string]string{
+	return map[string]interface{}{
 		"@value": string(v.Value),
 		"@type":  string(v.Type),
 	}
