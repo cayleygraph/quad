@@ -7,8 +7,12 @@ import (
 	"sort"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/cayleygraph/quad"
+	"github.com/cayleygraph/quad/voc/xsd"
+	"github.com/piprate/json-gold/ld"
+	"github.com/stretchr/testify/require"
 )
 
 var testReadCases = []struct {
@@ -244,5 +248,113 @@ func TestRoundtrip(t *testing.T) {
 		} else if !reflect.DeepEqual(arr, c.data) {
 			t.Errorf("case %d failed: wrong data returned:\n%v\n%v", i, arr, c.data)
 		}
+	}
+}
+
+var fromValueTestCases = []struct {
+	name   string
+	value  quad.Value
+	jsonLd interface{}
+}{
+	{
+		name:   "Simple text",
+		value:  quad.String("Alice"),
+		jsonLd: "Alice",
+	},
+	{
+		name:   "Localized text",
+		value:  quad.LangString{Value: "Alice", Lang: "en"},
+		jsonLd: map[string]string{"@value": "Alice", "@language": "en"},
+	},
+	{
+		name:   "Known typed string",
+		value:  quad.TypedString{Value: quad.String("Alice"), Type: xsd.String},
+		jsonLd: "Alice",
+	},
+	{
+		name:   "Known typed integer",
+		value:  quad.Int(1),
+		jsonLd: int64(1),
+	},
+	{
+		name:   "Known typed floating-point number",
+		value:  quad.Float(1.0),
+		jsonLd: 1.0,
+	},
+	{
+		name:   "Known typed boolean",
+		value:  quad.Bool(true),
+		jsonLd: true,
+	},
+	{
+		name:  "Datetime",
+		value: quad.Time(time.Time{}),
+		jsonLd: map[string]string{
+			"@value": "0001-01-01T00:00:00Z",
+			"@type":  xsd.DateTime,
+		},
+	},
+}
+
+func TestFromValue(t *testing.T) {
+	for _, c := range fromValueTestCases {
+		t.Run(c.name, func(t *testing.T) {
+			require.Equal(t, c.jsonLd, FromValue(c.value))
+		})
+	}
+}
+
+var toValueTestCases = []struct {
+	name   string
+	jsonLd ld.Node
+	value  quad.Value
+}{
+	{
+		name:   "Simple text",
+		jsonLd: ld.NewLiteral("Alice", "", ""),
+		value:  quad.String("Alice"),
+	},
+	{
+		name:   "Localized text",
+		jsonLd: ld.NewLiteral("Alice", "", "en"),
+		value:  quad.LangString{Value: "Alice", Lang: "en"},
+	},
+	{
+		name:   "Known typed string",
+		jsonLd: ld.NewLiteral("Alice", xsd.String, ""),
+		value:  quad.String("Alice"),
+	},
+	{
+		name:   "Known typed integer",
+		jsonLd: ld.NewLiteral("1", xsd.Integer, ""),
+		value:  quad.Int(1),
+	},
+	{
+		name:   "Known typed floating-point number (xsd:double)",
+		jsonLd: ld.NewLiteral("1.1", xsd.Double, ""),
+		value:  quad.Float(1.1),
+	},
+	{
+		name:   "Known typed floating-point number (xsd:float)",
+		jsonLd: ld.NewLiteral("1.1", xsd.Float, ""),
+		value:  quad.Float(1.1),
+	},
+	{
+		name:   "Known typed boolean",
+		jsonLd: ld.NewLiteral("true", xsd.Boolean, ""),
+		value:  quad.Bool(true),
+	},
+	{
+		name:   "Datetime",
+		jsonLd: ld.NewLiteral("0001-01-01T00:00:00Z", xsd.DateTime, ""),
+		value:  quad.Time(time.Time{}),
+	},
+}
+
+func TestToValue(t *testing.T) {
+	for _, c := range toValueTestCases {
+		t.Run(c.name, func(t *testing.T) {
+			require.Equal(t, c.value, toValue(c.jsonLd))
+		})
 	}
 }
