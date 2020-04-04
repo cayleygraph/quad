@@ -221,6 +221,24 @@ func FromValue(v quad.Value) interface{} {
 	}
 }
 
+// ToNode transforms a quad.Value to ld.Node
+func ToNode(value quad.Value) (ld.Node, error) {
+	switch v := value.(type) {
+	case quad.IRI:
+		return ld.NewIRI(string(v)), nil
+	case quad.BNode:
+		return ld.NewBlankNode(string(v)), nil
+	case quad.String:
+		return ld.NewLiteral(string(v), "", ""), nil
+	case quad.TypedString:
+		return ld.NewLiteral(string(v.Value), string(v.Type), ""), nil
+	case quad.LangString:
+		return ld.NewLiteral(string(v.Value), "", v.Lang), nil
+	default:
+		return nil, fmt.Errorf("Can not convert %v to ld.Node", value)
+	}
+}
+
 func isKnownTimeType(dataType quad.IRI) bool {
 	for _, iri := range quad.KnownTimeTypes {
 		if iri == dataType {
