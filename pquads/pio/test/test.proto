@@ -1,0 +1,9 @@
+syntax = "proto3";
+package pio.test;
+
+option go_package = "github.com/cayleygraph/quad/pquads/pio/test";
+
+// TestMsg is a test message used for unit tests.
+message TestMsg {
+  int32 value = 1;
+}
