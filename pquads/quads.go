@@ -7,8 +7,6 @@ import (
 	"github.com/cayleygraph/quad"
 )
 
-//go:generate protoc --proto_path=$GOPATH/src:. --gogo_out=. quads.proto
-
 // MakeValue converts quad.Value to its protobuf representation.
 func MakeValue(qv quad.Value) *Value {
 	if qv == nil {
@@ -57,7 +55,7 @@ func MarshalValue(v quad.Value) ([]byte, error) {
 	if v == nil {
 		return nil, nil
 	}
-	return MakeValue(v).Marshal()
+	return MakeValue(v).MarshalVT()
 }
 
 // UnmarshalValue is a helper for deserialization of quad.Value.
@@ -66,7 +64,7 @@ func UnmarshalValue(data []byte) (quad.Value, error) {
 		return nil, nil
 	}
 	var v Value
-	if err := v.Unmarshal(data); err != nil {
+	if err := v.UnmarshalVT(data); err != nil {
 		return nil, err
 	}
 	return v.ToNative(), nil

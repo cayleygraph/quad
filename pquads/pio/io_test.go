@@ -1,7 +1,6 @@
 // Extensions for Protocol Buffers to create more go like structures.
 //
 // Copyright (c) 2013, Vastech SA (PTY) LTD. All rights reserved.
-// http://github.com/gogo/protobuf/gogoproto
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -30,28 +29,29 @@ package pio_test
 
 import (
 	"bytes"
+	"errors"
 	goio "io"
 	"math/rand"
 	"testing"
 	"time"
 
 	io "github.com/cayleygraph/quad/pquads/pio"
-	"github.com/gogo/protobuf/test"
+	test "github.com/cayleygraph/quad/pquads/pio/test"
 )
 
 func iotest(writer io.Writer, reader io.Reader) error {
 	size := 1000
-	msgs := make([]*test.NinOptNative, size)
+	msgs := make([]*test.TestMsg, size)
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := range msgs {
-		msgs[i] = test.NewPopulatedNinOptNative(r, true)
+		msgs[i] = &test.TestMsg{Value: r.Int31()}
 		//issue 31
 		if i == 5 {
-			msgs[i] = &test.NinOptNative{}
+			msgs[i] = &test.TestMsg{}
 		}
 		//issue 31
 		if i == 999 {
-			msgs[i] = &test.NinOptNative{}
+			msgs[i] = &test.TestMsg{}
 		}
 		_, err := writer.WriteMsg(msgs[i])
 		if err != nil {
@@ -60,15 +60,15 @@ func iotest(writer io.Writer, reader io.Reader) error {
 	}
 	i := 0
 	for {
-		msg := &test.NinOptNative{}
+		msg := &test.TestMsg{}
 		if err := reader.ReadMsg(msg); err != nil {
 			if err == goio.EOF {
 				break
 			}
 			return err
 		}
-		if err := msg.VerboseEqual(msgs[i]); err != nil {
-			return err
+		if equal := msg.EqualVT(msgs[i]); !equal {
+			return errors.New("message is not equal to other message")
 		}
 		i++
 	}
@@ -96,21 +96,11 @@ func TestVarintNoClose(t *testing.T) {
 	}
 }
 
-//issue 32
-func TestVarintMaxSize(t *testing.T) {
-	buf := bytes.NewBuffer(nil)
-	writer := io.NewWriter(buf)
-	reader := io.NewReader(buf, 20)
-	if err := iotest(writer, reader); err != goio.ErrShortBuffer {
-		t.Error(err)
-	}
-}
-
 func TestVarintError(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	buf.Write([]byte{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f})
 	reader := io.NewReader(buf, 1024*1024)
-	msg := &test.NinOptNative{}
+	msg := &test.TestMsg{}
 	err := reader.ReadMsg(msg)
 	if err == nil {
 		t.Fatalf("Expected error")

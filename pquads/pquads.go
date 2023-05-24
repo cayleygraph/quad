@@ -7,10 +7,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/gogo/protobuf/proto"
-
 	"github.com/cayleygraph/quad"
 	"github.com/cayleygraph/quad/pquads/pio"
+	"google.golang.org/protobuf/proto"
 )
 
 var DefaultMaxSize = 1024 * 1024

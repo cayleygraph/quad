@@ -52,8 +52,8 @@ var escaper = strings.NewReplacer( // TODO: ISO 8859-1?
 	`&`, `&amp;`,
 	`"`, `&quot;`,
 
-//	`<`,`&lt;`,
-//	`>`, `&gt;`,
+// `<`,`&lt;`,
+// `>`, `&gt;`,
 )
 
 func escape(s string) string {
