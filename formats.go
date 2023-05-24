@@ -1,6 +1,7 @@
 package quad
 
 import (
+	"context"
 	"fmt"
 	"io"
 )
@@ -22,7 +23,7 @@ type Format struct {
 	// MarshalValue encodes one value in specific a format.
 	MarshalValue func(v Value) ([]byte, error)
 	// UnmarshalValue decodes a value from specific format.
-	UnmarshalValue func(b []byte) (Value, error)
+	UnmarshalValue func(ctx context.Context, b []byte) (Value, error)
 }
 
 var (

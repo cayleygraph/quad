@@ -3,6 +3,7 @@ package pquads
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -71,7 +72,7 @@ func NewWriter(w io.Writer, opts *Options) *Writer {
 	})
 	return &Writer{pw: pw, err: err, opts: *opts}
 }
-func (w *Writer) WriteQuad(q quad.Quad) error {
+func (w *Writer) WriteQuad(ctx context.Context, q quad.Quad) error {
 	if w.err != nil {
 		return w.err
 	} else if !q.IsValid() {
@@ -111,9 +112,9 @@ func (w *Writer) WriteQuad(q quad.Quad) error {
 	return w.err
 }
 
-func (w *Writer) WriteQuads(buf []quad.Quad) (int, error) {
+func (w *Writer) WriteQuads(ctx context.Context, buf []quad.Quad) (int, error) {
 	for i, q := range buf {
-		if err := w.WriteQuad(q); err != nil {
+		if err := w.WriteQuad(ctx, q); err != nil {
 			return i, err
 		}
 	}
@@ -181,7 +182,7 @@ func NewReader(r io.Reader, maxSize int) *Reader {
 	}
 	return qr
 }
-func (r *Reader) ReadQuad() (quad.Quad, error) {
+func (r *Reader) ReadQuad(ctx context.Context) (quad.Quad, error) {
 	if r.err != nil {
 		return quad.Quad{}, r.err
 	}
@@ -216,10 +217,10 @@ func (r *Reader) ReadQuad() (quad.Quad, error) {
 	}
 	return q, nil
 }
-func (r *Reader) SkipQuad() error {
+func (r *Reader) SkipQuad(ctx context.Context) error {
 	if !r.opts.Full {
 		// TODO(dennwc): read pb fields as bytes and unmarshal them only if ReadQuad is called
-		_, err := r.ReadQuad()
+		_, err := r.ReadQuad(ctx)
 		return err
 	}
 	r.err = r.pr.SkipMsg()

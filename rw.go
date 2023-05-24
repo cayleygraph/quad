@@ -1,6 +1,7 @@
 package quad
 
 import (
+	"context"
 	"io"
 )
 
@@ -9,7 +10,8 @@ type Writer interface {
 	// WriteQuad writes a single quad and returns an error, if any.
 	//
 	// Deprecated: use WriteQuads instead.
-	WriteQuad(Quad) error
+	WriteQuad(context.Context, Quad) error
+
 	BatchWriter
 }
 
@@ -21,21 +23,21 @@ type WriteCloser interface {
 // BatchWriter is an interface for writing quads in batches.
 type BatchWriter interface {
 	// WriteQuads returns a number of quads that where written and an error, if any.
-	WriteQuads(buf []Quad) (int, error)
+	WriteQuads(ctx context.Context, buf []Quad) (int, error)
 }
 
 // Reader is a minimal interface for quad readers. Used for quad deserializers and quad iterators.
 //
 // ReadQuad reads next valid Quad. It returns io.EOF if no quads are left.
 type Reader interface {
-	ReadQuad() (Quad, error)
+	ReadQuad(ctx context.Context) (Quad, error)
 }
 
 // Skipper is an interface for quad reader that can skip quads efficiently without decoding them.
 //
 // It returns io.EOF if no quads are left.
 type Skipper interface {
-	SkipQuad() error
+	SkipQuad(ctx context.Context) error
 }
 
 type ReadCloser interface {
@@ -54,7 +56,7 @@ type ReadSkipCloser interface {
 // ReadQuads reads at most len(buf) quads into buf. It returns number of quads that were read and an error.
 // It returns an io.EOF if there is no more quads to read.
 type BatchReader interface {
-	ReadQuads(buf []Quad) (int, error)
+	ReadQuads(ctx context.Context, buf []Quad) (int, error)
 }
 
 type Quads struct {
@@ -66,7 +68,7 @@ func (r *Quads) WriteQuad(q Quad) error {
 	return nil
 }
 
-func (r *Quads) ReadQuad() (Quad, error) {
+func (r *Quads) ReadQuad(ctx context.Context) (Quad, error) {
 	if r == nil || len(r.s) == 0 {
 		return Quad{}, io.EOF
 	}
@@ -86,20 +88,20 @@ func NewReader(quads []Quad) *Quads {
 // Copy will copy all quads from src to dst. It returns copied quads count and an error, if it failed.
 //
 // Copy will try to cast dst to BatchWriter and will switch to CopyBatch implementation in case of success.
-func Copy(dst Writer, src Reader) (n int, err error) {
+func Copy(ctx context.Context, dst Writer, src Reader) (n int, err error) {
 	if bw, ok := dst.(BatchWriter); ok {
-		return CopyBatch(bw, src, 0)
+		return CopyBatch(ctx, bw, src, 0)
 	}
 	var q Quad
 	for {
-		q, err = src.ReadQuad()
+		q, err = src.ReadQuad(ctx)
 		if err == io.EOF {
 			err = nil
 			return
 		} else if err != nil {
 			return
 		}
-		if err = dst.WriteQuad(q); err != nil {
+		if err = dst.WriteQuad(ctx, q); err != nil {
 			return
 		}
 		n++
@@ -110,9 +112,9 @@ type batchReader struct {
 	Reader
 }
 
-func (r batchReader) ReadQuads(quads []Quad) (n int, err error) {
+func (r batchReader) ReadQuads(ctx context.Context, quads []Quad) (n int, err error) {
 	for ; n < len(quads); n++ {
-		quads[n], err = r.ReadQuad()
+		quads[n], err = r.ReadQuad(ctx)
 		if err != nil {
 			break
 		}
@@ -126,7 +128,7 @@ var DefaultBatch = 10000
 // It returns copied quads count and an error, if it failed.
 //
 // If batchSize <= 0 default batch size will be used.
-func CopyBatch(dst BatchWriter, src Reader, batchSize int) (cnt int, err error) {
+func CopyBatch(ctx context.Context, dst BatchWriter, src Reader, batchSize int) (cnt int, err error) {
 	if batchSize <= 0 {
 		batchSize = DefaultBatch
 	}
@@ -137,12 +139,12 @@ func CopyBatch(dst BatchWriter, src Reader, batchSize int) (cnt int, err error) 
 	}
 	var n int
 	for err == nil {
-		n, err = bsrc.ReadQuads(buf)
+		n, err = bsrc.ReadQuads(ctx, buf)
 		if err != nil && err != io.EOF {
 			return
 		}
 		eof := err == io.EOF
-		n, err = dst.WriteQuads(buf[:n])
+		n, err = dst.WriteQuads(ctx, buf[:n])
 		cnt += n
 		if eof {
 			break
@@ -153,7 +155,7 @@ func CopyBatch(dst BatchWriter, src Reader, batchSize int) (cnt int, err error) 
 
 // ReadAll reads all quads from r until EOF.
 // It returns a slice with all quads that were read and an error, if any.
-func ReadAll(r Reader) (arr []Quad, err error) {
+func ReadAll(ctx context.Context, r Reader) (arr []Quad, err error) {
 	switch rt := r.(type) {
 	case *Quads:
 		arr = make([]Quad, len(rt.s))
@@ -163,7 +165,7 @@ func ReadAll(r Reader) (arr []Quad, err error) {
 	}
 	var q Quad
 	for {
-		q, err = r.ReadQuad()
+		q, err = r.ReadQuad(ctx)
 		if err == io.EOF {
 			return arr, nil
 		} else if err != nil {
@@ -257,22 +259,22 @@ func (w *valueWriter) apply(q *Quad) error {
 	return nil
 }
 
-func (w *valueWriter) WriteQuad(q Quad) error {
+func (w *valueWriter) WriteQuad(ctx context.Context, q Quad) error {
 	if err := w.apply(&q); err != nil {
 		return err
 	}
-	_, err := w.w.WriteQuads([]Quad{q})
+	_, err := w.w.WriteQuads(ctx, []Quad{q})
 	return err
 }
 
-func (w *valueWriter) WriteQuads(buf []Quad) (int, error) {
+func (w *valueWriter) WriteQuads(ctx context.Context, buf []Quad) (int, error) {
 	w.buf = append(w.buf[:0], buf...)
 	for i := range w.buf {
 		if err := w.apply(&w.buf[i]); err != nil {
 			return 0, err
 		}
 	}
-	n, err := w.w.WriteQuads(w.buf)
+	n, err := w.w.WriteQuads(ctx, w.buf)
 	w.buf = w.buf[:0]
 	return n, err
 }

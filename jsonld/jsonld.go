@@ -2,6 +2,7 @@
 package jsonld
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -61,7 +62,7 @@ type Reader struct {
 }
 
 // ReadQuad implements the quad.Reader interface
-func (r *Reader) ReadQuad() (quad.Quad, error) {
+func (r *Reader) ReadQuad(ctx context.Context) (quad.Quad, error) {
 	if r.err != nil {
 		return quad.Quad{}, r.err
 	}
@@ -122,7 +123,7 @@ func (w *Writer) SetLdContext(ctx interface{}) {
 }
 
 // WriteQuad implements quad.Writer
-func (w *Writer) WriteQuad(q quad.Quad) error {
+func (w *Writer) WriteQuad(ctx context.Context, q quad.Quad) error {
 	if !q.IsValid() {
 		return quad.ErrInvalid
 	}
@@ -146,9 +147,9 @@ func (w *Writer) WriteQuad(q quad.Quad) error {
 }
 
 // WriteQuads implements quad.Writer
-func (w *Writer) WriteQuads(buf []quad.Quad) (int, error) {
+func (w *Writer) WriteQuads(ctx context.Context, buf []quad.Quad) (int, error) {
 	for i, q := range buf {
-		if err := w.WriteQuad(q); err != nil {
+		if err := w.WriteQuad(ctx, q); err != nil {
 			return i, err
 		}
 	}

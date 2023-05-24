@@ -2,6 +2,7 @@
 package json
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -20,7 +21,7 @@ func init() {
 		MarshalValue: func(v quad.Value) ([]byte, error) {
 			return json.Marshal(quad.ToString(v))
 		},
-		UnmarshalValue: func(b []byte) (quad.Value, error) {
+		UnmarshalValue: func(ctx context.Context, b []byte) (quad.Value, error) {
 			var s *string
 			if err := json.Unmarshal(b, &s); err != nil {
 				return nil, err
@@ -53,7 +54,7 @@ type Reader struct {
 	err   error
 }
 
-func (r *Reader) ReadQuad() (quad.Quad, error) {
+func (r *Reader) ReadQuad(ctx context.Context) (quad.Quad, error) {
 	if r.err != nil {
 		return quad.Quad{}, r.err
 	}
@@ -78,7 +79,7 @@ type StreamReader struct {
 	err error
 }
 
-func (r *StreamReader) ReadQuad() (quad.Quad, error) {
+func (r *StreamReader) ReadQuad(ctx context.Context) (quad.Quad, error) {
 	if r.err != nil {
 		return quad.Quad{}, r.err
 	}
@@ -98,7 +99,7 @@ type Writer struct {
 	closed  bool
 }
 
-func (w *Writer) WriteQuad(q quad.Quad) error {
+func (w *Writer) WriteQuad(ctx context.Context, q quad.Quad) error {
 	if w.closed {
 		return errors.New("closed")
 	} else if !q.IsValid() {
@@ -122,9 +123,9 @@ func (w *Writer) WriteQuad(q quad.Quad) error {
 	return err
 }
 
-func (w *Writer) WriteQuads(buf []quad.Quad) (int, error) {
+func (w *Writer) WriteQuads(ctx context.Context, buf []quad.Quad) (int, error) {
 	for i, q := range buf {
-		if err := w.WriteQuad(q); err != nil {
+		if err := w.WriteQuad(ctx, q); err != nil {
 			return i, err
 		}
 	}
@@ -152,16 +153,16 @@ type StreamWriter struct {
 	enc *json.Encoder
 }
 
-func (w *StreamWriter) WriteQuad(q quad.Quad) error {
+func (w *StreamWriter) WriteQuad(ctx context.Context, q quad.Quad) error {
 	if !q.IsValid() {
 		return quad.ErrInvalid
 	}
 	return w.enc.Encode(q)
 }
 
-func (w *StreamWriter) WriteQuads(buf []quad.Quad) (int, error) {
+func (w *StreamWriter) WriteQuads(ctx context.Context, buf []quad.Quad) (int, error) {
 	for i, q := range buf {
-		if err := w.WriteQuad(q); err != nil {
+		if err := w.WriteQuad(ctx, q); err != nil {
 			return i, err
 		}
 	}

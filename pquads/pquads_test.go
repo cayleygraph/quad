@@ -2,6 +2,7 @@ package pquads_test
 
 import (
 	"bytes"
+	"context"
 	"reflect"
 	"testing"
 
@@ -72,10 +73,11 @@ func TestPQuads(t *testing.T) {
 			name += " strict"
 		}
 		t.Run(name, func(t *testing.T) {
+			ctx := context.Background()
 			for _, c := range testData {
 				buf.Reset()
 				w := pquads.NewWriter(buf, &opts)
-				n, err := quad.Copy(w, quad.NewReader(c.quads))
+				n, err := quad.Copy(ctx, w, quad.NewReader(c.quads))
 				if err != nil {
 					t.Fatalf("write failed after %d quads: %v", n, err)
 				}
@@ -84,7 +86,7 @@ func TestPQuads(t *testing.T) {
 				}
 				t.Log("size:", buf.Len())
 				r := pquads.NewReader(buf, 0)
-				quads, err := quad.ReadAll(r)
+				quads, err := quad.ReadAll(ctx, r)
 				if err != nil {
 					t.Fatalf("read failed: %v", err)
 				}

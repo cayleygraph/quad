@@ -28,6 +28,7 @@ package nquads
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"strconv"
@@ -61,14 +62,14 @@ func init() {
 			}
 			return []byte(v.String()), nil
 		},
-		UnmarshalValue: func(b []byte) (quad.Value, error) {
+		UnmarshalValue: func(ctx context.Context, b []byte) (quad.Value, error) {
 			// TODO: proper parser for a single value
 			r := NewReader(bytes.NewReader(bytes.Join([][]byte{
 				[]byte("<s> <p> "),
 				b,
 				[]byte(" <l> .\n"),
 			}, nil)), false)
-			q, err := r.ReadQuad()
+			q, err := r.ReadQuad(ctx)
 			if err == io.EOF {
 				return nil, quad.ErrInvalid
 			} else if err != nil {
@@ -94,7 +95,7 @@ func NewReader(r io.Reader, raw bool) *Reader {
 }
 
 // ReadQuad returns the next valid N-Quad as a quad.Quad, or an error.
-func (dec *Reader) ReadQuad() (quad.Quad, error) {
+func (dec *Reader) ReadQuad(ctx context.Context) (quad.Quad, error) {
 	dec.line = dec.line[:0]
 	var line []byte
 	for {
@@ -126,7 +127,7 @@ func (dec *Reader) ReadQuad() (quad.Quad, error) {
 		return quad.Quad{}, fmt.Errorf("failed to parse %q: %v", dec.line, err)
 	}
 	if !q.IsValid() {
-		return dec.ReadQuad()
+		return dec.ReadQuad(ctx)
 	}
 	return q, nil
 }
@@ -312,7 +313,7 @@ func (enc *Writer) writeValue(v quad.Value, sep string) {
 	}
 }
 
-func (enc *Writer) WriteQuad(q quad.Quad) error {
+func (enc *Writer) WriteQuad(ctx context.Context, q quad.Quad) error {
 	if !q.IsValid() {
 		return quad.ErrInvalid
 	}
@@ -327,9 +328,9 @@ func (enc *Writer) WriteQuad(q quad.Quad) error {
 	return enc.err
 }
 
-func (enc *Writer) WriteQuads(buf []quad.Quad) (int, error) {
+func (enc *Writer) WriteQuads(ctx context.Context, buf []quad.Quad) (int, error) {
 	for i, q := range buf {
-		if err := enc.WriteQuad(q); err != nil {
+		if err := enc.WriteQuad(ctx, q); err != nil {
 			return i, err
 		}
 	}

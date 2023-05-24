@@ -2,6 +2,7 @@ package dot_test
 
 import (
 	"bytes"
+	"context"
 	"testing"
 
 	"github.com/cayleygraph/quad"
@@ -54,10 +55,11 @@ var testData = []struct {
 
 func TestWriter(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
+	ctx := context.Background()
 	for _, c := range testData {
 		buf.Reset()
 		w := dot.NewWriter(buf)
-		n, err := quad.Copy(w, quad.NewReader(c.quads))
+		n, err := quad.Copy(ctx, w, quad.NewReader(c.quads))
 		if err != nil {
 			t.Fatalf("write failed after %d quads: %v", n, err)
 		}

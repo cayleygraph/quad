@@ -2,6 +2,7 @@ package graphml_test
 
 import (
 	"bytes"
+	"context"
 	"testing"
 
 	"github.com/cayleygraph/quad"
@@ -58,11 +59,12 @@ var testData = []struct {
 }
 
 func TestWriter(t *testing.T) {
+	ctx := context.Background()
 	buf := bytes.NewBuffer(nil)
 	for _, c := range testData {
 		buf.Reset()
 		w := graphml.NewWriter(buf)
-		n, err := quad.Copy(w, quad.NewReader(c.quads))
+		n, err := quad.Copy(ctx, w, quad.NewReader(c.quads))
 		if err != nil {
 			t.Fatalf("write failed after %d quads: %v", n, err)
 		}

@@ -17,6 +17,7 @@ package nquads
 import (
 	"archive/tar"
 	"compress/gzip"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -448,10 +449,11 @@ func TestParseRaw(t *testing.T) {
 }
 
 func TestRawDecoder(t *testing.T) {
+	ctx := context.Background()
 	dec := NewReader(strings.NewReader(document), true)
 	var n int
 	for {
-		q, err := dec.ReadQuad()
+		q, err := dec.ReadQuad(ctx)
 		if err != nil {
 			if err != io.EOF {
 				t.Fatalf("Failed to read documentRaw: %v", err)
@@ -469,6 +471,7 @@ func TestRawDecoder(t *testing.T) {
 }
 
 func TestRDFWorkingGroupSuitRaw(t *testing.T) {
+	ctx := context.Background()
 	// These tests erroneously pass because the parser does not
 	// perform semantic testing on the URI in the IRIRef as required
 	// by the specification. So, we skip them.
@@ -521,7 +524,7 @@ func TestRDFWorkingGroupSuitRaw(t *testing.T) {
 
 			dec := NewReader(tr, true)
 			for {
-				_, err := dec.ReadQuad()
+				_, err := dec.ReadQuad(ctx)
 				if err == io.EOF {
 					break
 				}

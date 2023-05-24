@@ -17,6 +17,7 @@ package nquads
 import (
 	"archive/tar"
 	"compress/gzip"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -676,10 +677,11 @@ _:100009 </film/performance/actor> </en/larry_fine_1902> .
 `
 
 func TestDecoder(t *testing.T) {
+	ctx := context.Background()
 	dec := NewReader(strings.NewReader(document), false)
 	var n int
 	for {
-		q, err := dec.ReadQuad()
+		q, err := dec.ReadQuad(ctx)
 		if err != nil {
 			if err != io.EOF {
 				t.Fatalf("Failed to read document: %v", err)
@@ -697,6 +699,7 @@ func TestDecoder(t *testing.T) {
 }
 
 func TestRDFWorkingGroupSuit(t *testing.T) {
+	ctx := context.Background()
 	// Tests that are not passable by cquads parsing from the RDF
 	// Working Group Suite:
 	//
@@ -792,7 +795,7 @@ func TestRDFWorkingGroupSuit(t *testing.T) {
 
 			dec := NewReader(tr, false)
 			for {
-				_, err := dec.ReadQuad()
+				_, err := dec.ReadQuad(ctx)
 				if err == io.EOF {
 					break
 				}
@@ -844,6 +847,7 @@ func BenchmarkParser(b *testing.B) {
 }
 
 func TestValueEncoding(t *testing.T) {
+	ctx := context.Background()
 	vals := []quad.Value{
 		quad.String("some val"),
 		quad.IRI("iri"),
@@ -863,7 +867,7 @@ func TestValueEncoding(t *testing.T) {
 		data, err := f.MarshalValue(v)
 		require.NoError(t, err)
 		require.Equal(t, enc[i], string(data), string(data))
-		v2, err := f.UnmarshalValue(data)
+		v2, err := f.UnmarshalValue(ctx, data)
 		require.NoError(t, err)
 		require.Equal(t, v, v2)
 	}

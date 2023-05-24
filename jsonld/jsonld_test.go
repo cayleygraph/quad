@@ -2,6 +2,7 @@ package jsonld
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"reflect"
 	"sort"
@@ -79,9 +80,10 @@ func (a ByQuad) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByQuad) Less(i, j int) bool { return a[i].NQuad() < a[j].NQuad() }
 
 func TestRead(t *testing.T) {
+	ctx := context.Background()
 	for i, c := range testReadCases {
 		r := NewReader(strings.NewReader(c.data))
-		quads, err := quad.ReadAll(r)
+		quads, err := quad.ReadAll(ctx, r)
 		if err != nil {
 			t.Errorf("case %d failed: %v", i, err)
 		}
@@ -166,11 +168,12 @@ var testWriteCases = []struct {
 
 func TestWrite(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
+	ctx := context.Background()
 	for i, c := range testWriteCases {
 		buf.Reset()
 		w := NewWriter(buf)
 		w.SetLdContext(c.ctx)
-		_, err := quad.Copy(w, quad.NewReader(c.data))
+		_, err := quad.Copy(ctx, w, quad.NewReader(c.data))
 		if err != nil {
 			t.Errorf("case %d failed: %v", i, err)
 		} else if err = w.Close(); err != nil {
@@ -231,16 +234,17 @@ var testRoundtripCases = []struct {
 
 func TestRoundtrip(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
+	ctx := context.Background()
 	for i, c := range testRoundtripCases {
 		buf.Reset()
 		w := NewWriter(buf)
-		_, err := quad.Copy(w, quad.NewReader(c.data))
+		_, err := quad.Copy(ctx, w, quad.NewReader(c.data))
 		if err != nil {
 			t.Errorf("case %d failed: %v", i, err)
 		} else if err = w.Close(); err != nil {
 			t.Errorf("case %d failed: %v", i, err)
 		}
-		arr, err := quad.ReadAll(NewReader(buf))
+		arr, err := quad.ReadAll(ctx, NewReader(buf))
 		sort.Sort(quad.ByQuadString(arr))
 		sort.Sort(quad.ByQuadString(c.data))
 		if err != nil {

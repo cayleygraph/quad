@@ -1,6 +1,7 @@
 package pquads
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -61,7 +62,7 @@ func MarshalValue(v quad.Value) ([]byte, error) {
 }
 
 // UnmarshalValue is a helper for deserialization of quad.Value.
-func UnmarshalValue(data []byte) (quad.Value, error) {
+func UnmarshalValue(ctx context.Context, data []byte) (quad.Value, error) {
 	if len(data) == 0 {
 		return nil, nil
 	}

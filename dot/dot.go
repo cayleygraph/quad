@@ -2,6 +2,7 @@
 package dot
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"strings"
@@ -43,7 +44,7 @@ func (w *Writer) writeString(s string) {
 	_, w.err = w.w.Write([]byte(s))
 }
 
-func (w *Writer) WriteQuad(q quad.Quad) error {
+func (w *Writer) WriteQuad(ctx context.Context, q quad.Quad) error {
 	if w.err != nil {
 		return w.err
 	} else if !q.IsValid() {
@@ -66,9 +67,9 @@ func (w *Writer) WriteQuad(q quad.Quad) error {
 	return w.err
 }
 
-func (w *Writer) WriteQuads(buf []quad.Quad) (int, error) {
+func (w *Writer) WriteQuads(ctx context.Context, buf []quad.Quad) (int, error) {
 	for i, q := range buf {
-		if err := w.WriteQuad(q); err != nil {
+		if err := w.WriteQuad(ctx, q); err != nil {
 			return i, err
 		}
 	}

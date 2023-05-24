@@ -16,6 +16,7 @@ package json
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"reflect"
 	"strings"
@@ -76,9 +77,10 @@ var readTests = []struct {
 }
 
 func TestReadJSON(t *testing.T) {
+	ctx := context.Background()
 	for _, test := range readTests {
 		qr := NewReader(strings.NewReader(test.input))
-		got, err := quad.ReadAll(qr)
+		got, err := quad.ReadAll(ctx, qr)
 		qr.Close()
 		if fmt.Sprint(err) != fmt.Sprint(test.err) {
 			t.Errorf("Failed to %v with unexpected error, got:%v expected %v", test.message, err, test.err)
@@ -130,11 +132,12 @@ var writeTests = []struct {
 }
 
 func TestWriteJSON(t *testing.T) {
+	ctx := context.Background()
 	buf := bytes.NewBuffer(nil)
 	for _, test := range writeTests {
 		buf.Reset()
 		qw := NewWriter(buf)
-		_, err := quad.Copy(qw, quad.NewReader(test.input))
+		_, err := quad.Copy(ctx, qw, quad.NewReader(test.input))
 		if err != nil {
 			t.Errorf("Failed to %v: %v", test.message, err)
 			continue
@@ -150,6 +153,7 @@ func TestWriteJSON(t *testing.T) {
 }
 
 func TestValueEncoding(t *testing.T) {
+	ctx := context.Background()
 	vals := []quad.Value{
 		quad.String("some val"),
 		quad.IRI("iri"),
@@ -169,7 +173,7 @@ func TestValueEncoding(t *testing.T) {
 		data, err := f.MarshalValue(v)
 		require.NoError(t, err)
 		require.Equal(t, enc[i], string(data), string(data))
-		v2, err := f.UnmarshalValue(data)
+		v2, err := f.UnmarshalValue(ctx, data)
 		require.NoError(t, err)
 		require.Equal(t, v, v2)
 	}
