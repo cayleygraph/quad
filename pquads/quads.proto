@@ -16,10 +16,7 @@ syntax = "proto3";
 
 package pquads;
 
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
-option (gogoproto.protosizer_all) = true;
-option (gogoproto.marshaler_all) = true;
-option (gogoproto.unmarshaler_all) =  true;
+option go_package = "github.com/cayleygraph/quad/pquads";
 
 // Quad is in internal representation of quad used by Cayley.
 message Quad {

@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/gogo/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/cayleygraph/quad"
 	"github.com/cayleygraph/quad/pquads/pio"

@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"time"
 
+	"google.golang.org/protobuf/proto"
+
 	"github.com/cayleygraph/quad"
 )
 
-//go:generate protoc --proto_path=$GOPATH/src:. --gogo_out=. quads.proto
+//go:generate protoc --go_opt=paths=source_relative --proto_path=. --go_out=. quads.proto
 
 // MakeValue converts quad.Value to its protobuf representation.
 func MakeValue(qv quad.Value) *Value {
@@ -57,7 +59,7 @@ func MarshalValue(v quad.Value) ([]byte, error) {
 	if v == nil {
 		return nil, nil
 	}
-	return MakeValue(v).Marshal()
+	return proto.Marshal(MakeValue(v))
 }
 
 // UnmarshalValue is a helper for deserialization of quad.Value.
@@ -66,7 +68,7 @@ func UnmarshalValue(data []byte) (quad.Value, error) {
 		return nil, nil
 	}
 	var v Value
-	if err := v.Unmarshal(data); err != nil {
+	if err := proto.Unmarshal(data, &v); err != nil {
 		return nil, err
 	}
 	return v.ToNative(), nil

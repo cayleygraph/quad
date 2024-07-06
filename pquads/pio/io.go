@@ -29,7 +29,7 @@
 package pio
 
 import (
-	"github.com/gogo/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 type Writer interface {

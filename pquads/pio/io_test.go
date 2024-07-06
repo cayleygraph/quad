@@ -30,28 +30,32 @@ package pio_test
 
 import (
 	"bytes"
+	"errors"
 	goio "io"
 	"math/rand"
+	"strconv"
 	"testing"
 	"time"
 
+	"google.golang.org/protobuf/proto"
+
+	"github.com/cayleygraph/quad/pquads"
 	io "github.com/cayleygraph/quad/pquads/pio"
-	"github.com/gogo/protobuf/test"
 )
 
 func iotest(writer io.Writer, reader io.Reader) error {
 	size := 1000
-	msgs := make([]*test.NinOptNative, size)
+	msgs := make([]*pquads.Quad, size)
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := range msgs {
-		msgs[i] = test.NewPopulatedNinOptNative(r, true)
+		msgs[i] = &pquads.Quad{Subject: strconv.Itoa(r.Int())}
 		//issue 31
 		if i == 5 {
-			msgs[i] = &test.NinOptNative{}
+			msgs[i] = &pquads.Quad{}
 		}
 		//issue 31
 		if i == 999 {
-			msgs[i] = &test.NinOptNative{}
+			msgs[i] = &pquads.Quad{}
 		}
 		_, err := writer.WriteMsg(msgs[i])
 		if err != nil {
@@ -60,15 +64,15 @@ func iotest(writer io.Writer, reader io.Reader) error {
 	}
 	i := 0
 	for {
-		msg := &test.NinOptNative{}
+		msg := &pquads.Quad{}
 		if err := reader.ReadMsg(msg); err != nil {
 			if err == goio.EOF {
 				break
 			}
 			return err
 		}
-		if err := msg.VerboseEqual(msgs[i]); err != nil {
-			return err
+		if !proto.Equal(msg, msgs[i]) {
+			return errors.New("message not equal")
 		}
 		i++
 	}
@@ -96,7 +100,7 @@ func TestVarintNoClose(t *testing.T) {
 	}
 }
 
-//issue 32
+// issue 32
 func TestVarintMaxSize(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	writer := io.NewWriter(buf)
@@ -110,7 +114,7 @@ func TestVarintError(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	buf.Write([]byte{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f})
 	reader := io.NewReader(buf, 1024*1024)
-	msg := &test.NinOptNative{}
+	msg := &pquads.Quad{}
 	err := reader.ReadMsg(msg)
 	if err == nil {
 		t.Fatalf("Expected error")

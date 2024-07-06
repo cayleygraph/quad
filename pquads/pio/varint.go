@@ -31,15 +31,9 @@ package pio
 import (
 	"bufio"
 	"encoding/binary"
-	"errors"
 	"io"
 
-	"github.com/gogo/protobuf/proto"
-)
-
-var (
-	errSmallBuffer = errors.New("Buffer Too Small")
-	errLargeValue  = errors.New("Value is Larger than 64 bits")
+	"google.golang.org/protobuf/proto"
 )
 
 func NewWriter(w io.Writer) Writer {
